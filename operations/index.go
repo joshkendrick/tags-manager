@@ -98,31 +98,31 @@ func tagsProcessor(filepaths <-chan string, boltDB *bolt.DB, done chan<- int, id
 		}
 
 		// try to pull the tags from the Subject field
-		tags, exists := metadata["Subject"]
+		tagsRaw, exists := metadata["Subject"]
 
 		// if still no tags found, try to pull from the Category field
-		if !exists || tags == "" {
-			tags, exists = metadata["Category"]
+		if !exists || tagsRaw == "" {
+			tagsRaw, exists = metadata["Category"]
 		}
 
 		// if still no tags found, log and skip
-		if !exists || tags == "" {
+		if !exists || tagsRaw == "" {
 			log.Printf("******TAGS NOT FOUND****** %s", filepath)
 			continue
 		}
 
 		// convert singleVal strings into an array
 		// so all values in bolt database are the same format
-		switch t := tags.(type) {
+		var tags []interface{}
+		switch t := tagsRaw.(type) {
 		case string:
-			tags = []string{t}
+			tags = []interface{}{t}
+		case []interface{}:
+			tags = t
 		}
 
+		// save all a file's tags into the files bucket:
 		log.Printf("%4d found tags - %s :: %v", id, filepath, tags)
-
-		// for tag in tags
-		// createbucketifnotexists
-		// put filepath, true in bucket
 
 		// marshal to json
 		tagsAsJSON, err := json.Marshal(tags)
@@ -131,7 +131,7 @@ func tagsProcessor(filepaths <-chan string, boltDB *bolt.DB, done chan<- int, id
 			continue
 		}
 
-		// save to bolt
+		// save to TagsByFiles bucket
 		err = boltDB.Update(func(tx *bolt.Tx) error {
 			bucket := tx.Bucket([]byte(TagsByFiles))
 			err := bucket.Put([]byte(filepath), tagsAsJSON)
@@ -142,6 +142,21 @@ func tagsProcessor(filepaths <-chan string, boltDB *bolt.DB, done chan<- int, id
 			log.Printf("%4d saved tags - %s :: %s", id, filepath, tags)
 		} else {
 			log.Printf("%4d !!ERROR!! -- %v: %s", id, err, filepath)
+		}
+
+		// THEN ALSO, for each tag, save the file to that tag's bucket
+		for _, tag := range tags {
+			// create the tag bucket if it doesnt exist
+			boltDB.Update(func(tx *bolt.Tx) error {
+				bucket, err := tx.CreateBucketIfNotExists([]byte(tag.(string)))
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				// put empty val for now
+				err = bucket.Put([]byte(filepath), []byte{})
+				return err
+			})
 		}
 	}
 }
