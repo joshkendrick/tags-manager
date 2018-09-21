@@ -56,6 +56,8 @@ func main() {
 			}
 		case "list":
 			// TODO
+		case "clear":
+			// TODo
 		case "help":
 			fmt.Println("things you can do")
 			fmt.Println("index <path> -> gets file tags in that path added to the database")
