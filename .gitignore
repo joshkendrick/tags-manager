@@ -1,0 +1,9 @@
+# binaries
+main
+debug
+exporter.exe
+
+# database
+*.db*
+
+.vscode*
