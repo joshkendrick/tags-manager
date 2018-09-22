@@ -66,9 +66,10 @@ func main() {
 
 		case "help":
 			fmt.Println("things you can do")
-			fmt.Println("index <path> -> gets file tags in that path added to the database")
+			fmt.Println("index <path> -> adds file tags in that path to the database")
 			fmt.Println("list -> displays all data we have")
 			fmt.Println("list <tag_or_absolute_filepath> -> displays data about that key")
+			fmt.Println("clear -> clears out the database, starts fresh")
 			fmt.Println("exit -> PEACE")
 
 		default:
