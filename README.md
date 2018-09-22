@@ -18,7 +18,7 @@ Run the program: `go run main.go`
 ```
 index <path> -> adds file tags in that path to the database
 list -> displays all data we have
-list <tag_or_absolute_filepath> -> displays data about that key
+list <tag|absolute_filepath|tags|files> -> displays data about that key or data type
 clear -> clears out the database, starts fresh
 exit -> PEACE
 ```

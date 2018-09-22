@@ -16,10 +16,43 @@ func List(boltDB *bolt.DB, args []string) {
 	// if listing a term:
 	if len(args) > 1 {
 		searchTerm := args[1]
-		listArg(boltDB, searchTerm)
+
+		if searchTerm == "tags" {
+			listTags(boltDB)
+		} else if searchTerm == "files" {
+			listFiles(boltDB)
+		} else {
+			listArg(boltDB, searchTerm)
+		}
 	} else {
 		listAll(boltDB)
 	}
+}
+
+func listTags(boltDB *bolt.DB) {
+	// loop through the tags buckets
+	boltDB.View(func(tx *bolt.Tx) error {
+		tx.ForEach(func(name []byte, b *bolt.Bucket) error {
+			fmt.Println(string(name))
+
+			return nil
+		})
+		return nil
+	})
+}
+
+func listFiles(boltDB *bolt.DB) {
+	// then loop through and display tags_by_files
+	boltDB.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		b := tx.Bucket([]byte(consts.TagsByFiles))
+
+		b.ForEach(func(k, v []byte) error {
+			fmt.Println(string(k))
+			return nil
+		})
+		return nil
+	})
 }
 
 func listArg(boltDB *bolt.DB, arg string) {
@@ -30,7 +63,7 @@ func listArg(boltDB *bolt.DB, arg string) {
 		// if arg was a tag and we have a bucket for that tag
 		if b != nil {
 			tagStats := b.Stats()
-			fmt.Printf("%s : %d files", arg, tagStats.KeyN)
+			fmt.Printf("%s : %d files\n", arg, tagStats.KeyN)
 
 			// print all the files
 			b.ForEach(func(k, v []byte) error {
@@ -49,25 +82,6 @@ func listArg(boltDB *bolt.DB, arg string) {
 }
 
 func listAll(boltDB *bolt.DB) {
-	// loop through the tags buckets
-	boltDB.View(func(tx *bolt.Tx) error {
-		tx.ForEach(func(name []byte, b *bolt.Bucket) error {
-			fmt.Println(string(name))
-
-			return nil
-		})
-		return nil
-	})
-
-	// then loop through and display tags_by_files
-	boltDB.View(func(tx *bolt.Tx) error {
-		// Assume bucket exists and has keys
-		b := tx.Bucket([]byte(consts.TagsByFiles))
-
-		b.ForEach(func(k, v []byte) error {
-			fmt.Println(string(k))
-			return nil
-		})
-		return nil
-	})
+	listTags(boltDB)
+	listFiles(boltDB)
 }
