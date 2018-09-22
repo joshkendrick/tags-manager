@@ -1,21 +1,24 @@
-Run the program: ./tags-manager.exe
+## Tags Manager
 
-###TODO:
+This is a small utility to manipulate the tags I've put on my photos and videos and back them up to a boltDB database so they don't get lost (like when Windows changes something and I lose them, or it turns out there isn't a way to read them anymore... I don't know... it makes me feel better?)
 
-Add directories to index tags
-`index <file-or-dir>`
+Makes use of the [exiftool](https://www.sno.phy.queensu.ca/~phil/exiftool/) executable v11.10 (saved in this repo, and already outdated)
 
-List all tags
-`list`
+I built the Windows exporter executable from reading [this](https://github.com/golang/go/wiki/WindowsCrossCompiling)
 
-List all files associated with a tag
-`list <tag>`
+#### If you run this on your target machine, it will default to the correct $GOOS and $GOARCH:
+```
+go build -o tags-manager_v0.2.0.exe main.go
+```
 
-Edit a tag to another tag
-`edit <old-tag> <new-tag>`
+### Usage
+Run the program: `go run main.go`
 
-Add a tag to all files with another tag
-`add <tag1> <tag2>`
-
-Remove a tag from all files with that tag
-`remove <tag>`
+#### Commands:
+```
+index <path> -> adds file tags in that path to the database
+list -> displays all data we have
+list <tag_or_absolute_filepath> -> displays data about that key
+clear -> clears out the database, starts fresh
+exit -> PEACE
+```

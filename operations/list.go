@@ -1,5 +1,4 @@
 // Author: Josh Kendrick
-// Version: v0.1.0
 // Do whatever you want with this code
 
 package operations

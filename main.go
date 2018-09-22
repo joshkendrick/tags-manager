@@ -1,5 +1,4 @@
 // Author: Josh Kendrick
-// Version: v0.1.0
 // Do whatever you want with this code
 
 package main
@@ -19,7 +18,7 @@ import (
 )
 
 func main() {
-	fmt.Println("HELLO! TagsManager v0.1.0 I guess?")
+	fmt.Printf("HELLO! TagsManager %s I guess?\n", consts.Version)
 	fmt.Println("type 'help' to see possible commands")
 
 	boltDB := initDB()
