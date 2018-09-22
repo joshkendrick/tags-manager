@@ -15,9 +15,8 @@ import (
 	"github.com/boltdb/bolt"
 
 	"github.com/joshkendrick/tags-manager/operations"
+	consts "github.com/joshkendrick/tags-manager/utils"
 )
-
-const Version = "v0.1.0"
 
 func main() {
 	fmt.Println("HELLO! TagsManager v0.1.0 I guess?")
@@ -25,13 +24,21 @@ func main() {
 
 	// open db
 	boltDB, err := bolt.Open(
-		"tags-manager.db",
+		consts.DbName,
 		0600,
 		&bolt.Options{Timeout: 3 * time.Second})
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer boltDB.Close()
+
+	// create the files bucket if it doesnt exist
+	boltDB.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(consts.TagsByFiles))
+		if err != nil {
+			log.Fatal(err)
+		}
+		return nil
+	})
 
 	argsRegEx := regexp.MustCompile("'?[[:graph:]]+'?")
 	// read from stdin
@@ -46,24 +53,45 @@ func main() {
 		cmd := args[0]
 		switch cmd {
 		case "exit":
+			boltDB.Close()
 			fmt.Println("GOODBYE")
 			return
+
 		case "index":
 			if len(args) < 2 || args[1] == "" {
 				fmt.Println("incorrect format, missing path: index <path>")
 			} else {
 				operations.Index(boltDB, args[1])
 			}
+
 		case "list":
-			// TODO
+
 		case "clear":
-			// TODo
+			// close current db
+			boltDB.Close()
+
+			// delete the file
+			os.Remove(consts.DbName)
+
+			// create a new db
+			boltDB, err = bolt.Open(
+				consts.DbName,
+				0600,
+				&bolt.Options{Timeout: 3 * time.Second})
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// notify user
+			fmt.Println("fresh, empty database!")
+
 		case "help":
 			fmt.Println("things you can do")
 			fmt.Println("index <path> -> gets file tags in that path added to the database")
 			fmt.Println("list -> displays all data we have")
 			fmt.Println("list <tag_or_absolute_filepath> -> displays data about that key")
 			fmt.Println("exit -> PEACE")
+
 		default:
 			fmt.Println("no comprende")
 		}

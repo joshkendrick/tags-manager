@@ -14,22 +14,12 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/pkg/errors"
-)
 
-// TagsByFiles is the name of the tagsByFiles bucket
-const TagsByFiles = "tags_by_files"
+	consts "github.com/joshkendrick/tags-manager/utils"
+)
 
 // Index gets tag data from files/dirs and adds it to the buckets
 func Index(boltDB *bolt.DB, path string) error {
-	// create the files bucket if it doesnt exist
-	boltDB.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("tags_by_files"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		return nil
-	})
-
 	// produce the files to the channel for the consumers
 	filepaths := make(chan string, 300)
 	producedCount := 0
@@ -133,7 +123,7 @@ func tagsProcessor(filepaths <-chan string, boltDB *bolt.DB, done chan<- int, id
 
 		// save to TagsByFiles bucket
 		err = boltDB.Update(func(tx *bolt.Tx) error {
-			bucket := tx.Bucket([]byte(TagsByFiles))
+			bucket := tx.Bucket([]byte(consts.TagsByFiles))
 			err := bucket.Put([]byte(filepath), tagsAsJSON)
 			return err
 		})
