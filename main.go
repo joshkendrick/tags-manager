@@ -22,23 +22,7 @@ func main() {
 	fmt.Println("HELLO! TagsManager v0.1.0 I guess?")
 	fmt.Println("type 'help' to see possible commands")
 
-	// open db
-	boltDB, err := bolt.Open(
-		consts.DbName,
-		0600,
-		&bolt.Options{Timeout: 3 * time.Second})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// create the files bucket if it doesnt exist
-	boltDB.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(consts.TagsByFiles))
-		if err != nil {
-			log.Fatal(err)
-		}
-		return nil
-	})
+	boltDB := initDB()
 
 	argsRegEx := regexp.MustCompile("'?[[:graph:]]+'?")
 	// read from stdin
@@ -65,6 +49,7 @@ func main() {
 			}
 
 		case "list":
+			operations.List(boltDB, args)
 
 		case "clear":
 			// close current db
@@ -74,13 +59,7 @@ func main() {
 			os.Remove(consts.DbName)
 
 			// create a new db
-			boltDB, err = bolt.Open(
-				consts.DbName,
-				0600,
-				&bolt.Options{Timeout: 3 * time.Second})
-			if err != nil {
-				log.Fatal(err)
-			}
+			boltDB = initDB()
 
 			// notify user
 			fmt.Println("fresh, empty database!")
@@ -100,4 +79,26 @@ func main() {
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintln(os.Stderr, "reading standard input:", err)
 	}
+}
+
+func initDB() *bolt.DB {
+	// open db
+	boltDB, err := bolt.Open(
+		consts.DbName,
+		0600,
+		&bolt.Options{Timeout: 3 * time.Second})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// create the files bucket if it doesnt exist
+	boltDB.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(consts.TagsByFiles))
+		if err != nil {
+			log.Fatal(err)
+		}
+		return nil
+	})
+
+	return boltDB
 }
