@@ -1,7 +1,7 @@
 # binaries
 main
 debug
-exporter.exe
+tags-manager*.exe
 
 # database
 *.db*
